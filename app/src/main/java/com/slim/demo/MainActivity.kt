@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity() {
         }
         slimAdapter = SlimAdapter.create<String>(findViewById(R.id.rv))
                 .layout(LinearLayoutManager(this))
+                .empty(R.layout.loading)
                 .multiple({ _: String?, position: Int ->
                     when {
                         position % 2 == 0 ->

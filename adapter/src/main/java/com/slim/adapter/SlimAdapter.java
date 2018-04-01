@@ -58,20 +58,20 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
     public static <T> SlimAdapter<T> create(RecyclerView recyclerView) {
         SlimAdapter<T> adapter = new SlimAdapter<>();
         adapter.mRecyclerView = recyclerView;
-        if (recyclerView.getLayoutManager() != null)
+        if(recyclerView.getLayoutManager() != null)
             recyclerView.setAdapter(adapter);
         return adapter;
     }
 
     public SlimAdapter<T> multiple(MultipleType<T> multipleType) {
-        if (this.mMultipleType != null)
+        if(this.mMultipleType != null)
             throw new RuntimeException("请先设置multiple开启多布局");
         this.mMultipleType = multipleType;
         return this;
     }
 
     public SlimAdapter<T> register(final int layoutRes, SlimInjector<T> slimInjector) {
-        if (this.mMultipleType != null)
+        if(this.mMultipleType != null)
             throw new RuntimeException("此为单布局注册方法,请使用多布局注册方法");
         this.mMultipleType = new MultipleType<T>() {
             @Override
@@ -84,7 +84,7 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
     }
 
     public SlimAdapter<T> register(SlimInjector<T> slimInjector) {
-        if (this.mMultipleType == null)
+        if(this.mMultipleType == null)
             throw new RuntimeException("请先设置multiple开启多布局");
         mSlimInjector = slimInjector;
         return this;
@@ -92,15 +92,15 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
 
     @Override
     public int getItemViewType(int position) {
-        if (getDataCount() == 0 && mEmptyLayout != null)
+        if(getDataCount() == 0 && mEmptyLayout != null)
             return TYPE_EMPTY;
-        else if (position < getHeaderCount())
+        else if(position < getHeaderItemCount())
             return TYPE_HEAD;
-        else if (position < getHeaderCount() + getDataCount())
-            return mMultipleType.getLayoutId(mData.get(position - getHeaderCount()), position - getHeaderCount());
-        else if (position < getHeaderCount() + getDataCount() + getFooterCount())
+        else if(position < getHeaderItemCount() + getDataCount())
+            return mMultipleType.getLayoutId(mData.get(position - getHeaderItemCount()), position - getHeaderItemCount());
+        else if(position < getHeaderItemCount() + getDataCount() + getFooterItemCount())
             return TYPE_FOOT;
-        else if (mLoadMoreListener != null)
+        else if(mLoadMoreListener != null)
             return TYPE_MORE;
         return super.getItemViewType(position);
     }
@@ -133,7 +133,7 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
                 return new SlimViewHolder(parent, viewType) {
                     @Override
                     public void init(final SlimAdapter adapter, final int position) {
-                        if (mOnClickListener != null)
+                        if(mOnClickListener != null)
                             itemView.setOnClickListener(new OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
@@ -141,7 +141,7 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
                                 }
                             });
 
-                        if (mOnLongClickListener != null)
+                        if(mOnLongClickListener != null)
                             itemView.setOnLongClickListener(new View.OnLongClickListener() {
                                 @Override
                                 public boolean onLongClick(View v) {
@@ -160,25 +160,29 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull SlimViewHolder holder, int position) {
         //更改真实数据时需减去头布局的,否则数据会错误1个
-        int positionEx = (position >= getHeaderCount() && position < getHeaderCount() + getDataCount()) ? position - getHeaderCount() : position;
+        int positionEx = (position >= getHeaderItemCount() && position < getHeaderItemCount() + getDataCount()) ? position - getHeaderItemCount() : position;
         holder.init(this, positionEx);
 
     }
 
     @Override
     public int getItemCount() {
-        if (getDataCount() == 0)
+        if(getDataCount() == 0)
             return mEmptyLayout != null ? 1 : 0;
-        return getHeaderCount() + getDataCount() + getLoadMoreCount() + getFooterCount();
+        return getHeaderItemCount() + getDataCount() + getLoadMoreCount() + getFooterItemCount();
+    }
+
+    private View inflate(@LayoutRes int layoutRes) {
+        return LayoutInflater.from(mRecyclerView.getContext()).inflate(layoutRes, (ViewGroup) mRecyclerView.getParent(), false);
     }
 
     public SlimAdapter<T> empty(@LayoutRes int layoutRes) {
-        empty(View.inflate(mRecyclerView.getContext(), layoutRes, null));
+        empty(inflate(layoutRes));
         return this;
     }
 
     public SlimAdapter<T> empty(@LayoutRes int layoutRes, OnClickListener onClickListener) {
-        empty(View.inflate(mRecyclerView.getContext(), layoutRes, mRecyclerView), onClickListener);
+        empty(inflate(layoutRes), onClickListener);
         return this;
     }
 
@@ -188,17 +192,17 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
     }
 
     public SlimAdapter<T> empty(View view, OnClickListener onClickListener) {
-        if (mEmptyLayout == null) {
+        if(mEmptyLayout == null) {
             mEmptyLayout = new FrameLayout(view.getContext());
             final RecyclerView.LayoutParams layoutParams = new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT);
             final ViewGroup.LayoutParams lp = view.getLayoutParams();
-            if (lp != null) {
+            if(lp != null) {
                 layoutParams.width = lp.width;
                 layoutParams.height = lp.height;
             }
             mEmptyLayout.setLayoutParams(layoutParams);
         }
-        if (onClickListener != null)
+        if(onClickListener != null)
             view.setOnClickListener(onClickListener);
         mEmptyLayout.removeAllViews();
         mEmptyLayout.addView(view);
@@ -206,7 +210,7 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
     }
 
     public SlimAdapter<T> head(@LayoutRes int layoutRes) {
-        View view = LayoutInflater.from(mRecyclerView.getContext()).inflate(layoutRes, (ViewGroup) mRecyclerView.getParent(), false);
+        View view = inflate(layoutRes);
         head(view);
         return this;
     }
@@ -222,9 +226,9 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
     }
 
     public SlimAdapter<T> head(View view, int index, int orientation) {
-        if (mHeaderLayout == null) {
+        if(mHeaderLayout == null) {
             mHeaderLayout = new LinearLayout(mRecyclerView.getContext());
-            if (orientation == LinearLayout.VERTICAL) {
+            if(orientation == LinearLayout.VERTICAL) {
                 mHeaderLayout.setOrientation(LinearLayout.VERTICAL);
                 mHeaderLayout.setLayoutParams(new LayoutParams(MATCH_PARENT, WRAP_CONTENT));
             } else {
@@ -233,13 +237,13 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
             }
         }
         int childCount = mHeaderLayout.getChildCount();
-        if (index < 0 || index > childCount) {
+        if(index < 0 || index > childCount) {
             index = childCount;
         }
         mHeaderLayout.addView(view, index);
 
-        if (mHeaderLayout.getChildCount() == 1) {
-            if (getDataCount() != 0) {
+        if(mHeaderLayout.getChildCount() == 1) {
+            if(getDataCount() != 0) {
                 notifyItemInserted(0);
             }
         }
@@ -247,32 +251,31 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
     }
 
     public void removeFootView(View view) {
-        if (getFooterCount() == 0)
+        if(getFooterItemCount() == 0)
             return;
         mFooterLayout.removeView(view);
-        if (mFooterLayout.getChildCount() == 0) {
+        if(mFooterLayout.getChildCount() == 0) {
             int position = getLoadMoreViewPosition() - 1;
-            if (position != -1) {
+            if(position != -1) {
                 notifyItemRemoved(position);
             }
         }
     }
 
     public void removeHeadView(View view) {
-        if (getHeaderCount() == 0)
+        if(getHeaderItemCount() == 0)
             return;
         mHeaderLayout.removeView(view);
-        if (mHeaderLayout.getChildCount() == 0) {
-            int position = getHeaderCount() - 1;
-            if (position != -1) {
+        if(mHeaderLayout.getChildCount() == 0) {
+            int position = getHeaderItemCount() - 1;
+            if(position != -1) {
                 notifyItemRemoved(position);
             }
         }
     }
 
     public SlimAdapter<T> foot(@LayoutRes int layoutRes) {
-        View view = View.inflate(mRecyclerView.getContext(), layoutRes, null);
-        foot(view);
+        foot(inflate(layoutRes));
         return this;
     }
 
@@ -288,9 +291,9 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
 
 
     public SlimAdapter<T> foot(View view, int index, int orientation) {
-        if (mFooterLayout == null) {
+        if(mFooterLayout == null) {
             mFooterLayout = new LinearLayout(mRecyclerView.getContext());
-            if (orientation == LinearLayout.VERTICAL) {
+            if(orientation == LinearLayout.VERTICAL) {
                 mFooterLayout.setOrientation(LinearLayout.VERTICAL);
                 mFooterLayout.setLayoutParams(new LayoutParams(MATCH_PARENT, WRAP_CONTENT));
             } else {
@@ -299,12 +302,12 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
             }
         }
         final int childCount = mFooterLayout.getChildCount();
-        if (index < 0 || index > childCount) {
+        if(index < 0 || index > childCount) {
             index = childCount;
         }
         mFooterLayout.addView(view, index);
-        if (mFooterLayout.getChildCount() == 1) {
-            if (getDataCount() != 0) {
+        if(mFooterLayout.getChildCount() == 1) {
+            if(getDataCount() != 0) {
                 notifyItemInserted(getLoadMoreViewPosition());
             }
         }
@@ -354,22 +357,30 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
 
     public SlimAdapter<T> initMore(@NonNull List<T> moreData) {
         mData.addAll(moreData);
-        int position = mData.size() - moreData.size() + getHeaderCount();
+        int position = mData.size() - moreData.size() + getHeaderItemCount();
         notifyItemRangeInserted(position, moreData.size());
         loadMoreComplete();
         return this;
     }
 
 
-    private int getHeaderCount() {
+    private int getHeaderItemCount() {
         return mHeaderLayout == null ? 0 : 1;
     }
 
-    private int getDataCount() {
+    public int getHeaderCount() {
+        return mHeaderLayout == null ? 0 : mHeaderLayout.getChildCount();
+    }
+
+    public int getDataCount() {
         return mData == null ? 0 : mData.size();
     }
 
-    private int getFooterCount() {
+    public int getFooterCount() {
+        return mFooterLayout == null ? 0 : mFooterLayout.getChildCount();
+    }
+
+    private int getFooterItemCount() {
         return mFooterLayout == null ? 0 : 1;
     }
 
@@ -378,25 +389,25 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
     }
 
     private int getLoadMoreViewPosition() {
-        return getHeaderCount() + getDataCount() + getFooterCount();
+        return getHeaderItemCount() + getDataCount() + getFooterItemCount();
     }
 
     public void loadMoreFail() {
-        if (mLoadMoreListener == null)
+        if(mLoadMoreListener == null)
             throw new RuntimeException("请先启动loadMore");
         mLoadMoreView.setLoadMoreStatus(SlimLoadMore.STATUS_FAIL);
         notifyItemChanged(getLoadMoreViewPosition());
     }
 
     public void loadMoreEnd() {
-        if (mLoadMoreListener == null)
+        if(mLoadMoreListener == null)
             throw new RuntimeException("请先启动loadMore");
         mLoadMoreView.setLoadMoreStatus(SlimLoadMore.STATUS_END);
         notifyItemChanged(getLoadMoreViewPosition());
     }
 
     private void loadMoreComplete() {
-        if (mLoadMoreListener == null)
+        if(mLoadMoreListener == null)
             throw new RuntimeException("请先启动loadMore");
         mLoadMoreView.setLoadMoreStatus(SlimLoadMore.STATUS_LOADING);
         mLoading = false;
@@ -405,7 +416,7 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
     }
 
     public T getItem(int position) {
-        if (position >= 0 && position < mData.size())
+        if(position >= 0 && position < mData.size())
             return mData.get(position);
         else
             return null;
@@ -436,7 +447,7 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
                 //当前不能继续上拉同时不在加载更多状态
-                if (!recyclerView.canScrollVertically(1) && loadMoreEnabled()) {
+                if(!recyclerView.canScrollVertically(1) && loadMoreEnabled()) {
                     mLoading = true;
                     mRecyclerView.post(new Runnable() {
                         @Override
@@ -450,12 +461,12 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
 
         });
 
-        if (mRecyclerView.getLayoutManager() instanceof GridLayoutManager) {
+        if(mRecyclerView.getLayoutManager() instanceof GridLayoutManager) {
             final GridLayoutManager gridManager = ((GridLayoutManager) mRecyclerView.getLayoutManager());
             gridManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                 @Override
                 public int getSpanSize(int position) {
-                    return position < getHeaderCount() || position >= getHeaderCount() + getDataCount() ? gridManager.getSpanCount() : mSpanSizeLookup == null ? 1 : mSpanSizeLookup.getSpanSize(gridManager, position - getHeaderCount());
+                    return position < getHeaderItemCount() || position >= getHeaderItemCount() + getDataCount() ? gridManager.getSpanCount() : mSpanSizeLookup == null ? 1 : mSpanSizeLookup.getSpanSize(gridManager, position - getHeaderItemCount());
                 }
             });
         }
@@ -470,14 +481,14 @@ public class SlimAdapter<T> extends RecyclerView.Adapter<SlimViewHolder> {
     public void onViewAttachedToWindow(@NonNull SlimViewHolder holder) {
         super.onViewAttachedToWindow(holder);
         int position = holder.getAdapterPosition();
-        if (position < getHeaderCount() || position >= getHeaderCount() + getDataCount()) {
+        if(position < getHeaderItemCount() || position >= getHeaderItemCount() + getDataCount()) {
             setFullSpan(holder);
         }
     }
 
 
     private void setFullSpan(RecyclerView.ViewHolder holder) {
-        if (holder.itemView.getLayoutParams() instanceof StaggeredGridLayoutManager.LayoutParams) {
+        if(holder.itemView.getLayoutParams() instanceof StaggeredGridLayoutManager.LayoutParams) {
             StaggeredGridLayoutManager.LayoutParams params = (StaggeredGridLayoutManager.LayoutParams) holder.itemView.getLayoutParams();
             params.setFullSpan(true);
         }
